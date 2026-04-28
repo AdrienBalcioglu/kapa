@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppConfig {
+  id                String     @id @default(cuid())
+  userId            String
+  appName           String
+  bundleId          String     @unique
+  url               String
+  splashColor       String     @default("#FFFFFF")
+  iconPath          String?    // S3 path for icon
+  pushNotifications Boolean    @default(false)
+  sessionMode       String     @default("cookie") // "cookie" | "jwt" | "none"
+  platforms         String[]   // ["ios", "android"]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  builds            BuildJob[]
+
+  @@index([userId])
+}
+
+model BuildJob {
+  id            String      @id @default(cuid())
+  appConfigId   String
+  appConfig     AppConfig   @relation(fields: [appConfigId], references: [id], onDelete: Cascade)
+  status        String      @default("pending") // pending, generating, queued, building, success, failed
+  platform      String      // "ios" | "android"
+  easBuildId    String?
+  downloadUrl   String?
+  logs          String?     @db.Text
+  errorMessage  String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([appConfigId])
+  @@index([status])
+  @@index([easBuildId])
+}

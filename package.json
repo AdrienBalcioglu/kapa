@@ -1,0 +1,33 @@
+{
+  "name": "app-builder-saas",
+  "version": "1.0.0",
+  "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "msgpackr-extract",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@app-builder/web",
+    "dev:api": "npm run dev --workspace=@app-builder/api",
+    "build:web": "npm run build --workspace=@app-builder/web",
+    "build:api": "npm run build --workspace=@app-builder/api",
+    "dev": "npm run dev:api",
+    "db:generate": "npm run db:generate --workspace=@app-builder/api",
+    "db:push": "npm run db:push --workspace=@app-builder/api"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0"
+  }
+}
