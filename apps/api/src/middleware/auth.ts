@@ -15,8 +15,10 @@ declare global {
 export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
-  // Dev mode: allow unauthenticated access with a mock user
-  if (!authHeader && process.env.NODE_ENV !== 'production') {
+  // Local development only: a mock user, enabled explicitly with AUTH_DEV_BYPASS=true.
+  // Never active in production, whatever the flag says.
+  const devBypass = process.env.AUTH_DEV_BYPASS === 'true' && process.env.NODE_ENV !== 'production';
+  if (!authHeader && devBypass) {
     req.user = {
       id: 'dev-user-123',
       email: 'dev@example.com',

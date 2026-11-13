@@ -65,21 +65,27 @@ function mapEASStatus(easStatus: EASWebhookPayload['status']): BuildStatus {
 
 // Verify EAS webhook signature
 function verifyEASSignature(payload: string, signature: string | undefined): boolean {
-  if (!signature || !process.env.EAS_WEBHOOK_SECRET) {
-    // If no secret configured, skip verification (not recommended for production)
+  if (!process.env.EAS_WEBHOOK_SECRET) {
+    // Without a secret, unsigned webhooks are only accepted outside production.
+    if (process.env.NODE_ENV === 'production') {
+      console.error('EAS_WEBHOOK_SECRET is not set: webhook rejected');
+      return false;
+    }
     console.warn('EAS webhook signature verification skipped - no secret configured');
     return true;
   }
+
+  if (!signature) return false;
 
   const expectedSignature = crypto
     .createHmac('sha256', process.env.EAS_WEBHOOK_SECRET)
     .update(payload)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+  const received = Buffer.from(signature);
+  const expected = Buffer.from(expectedSignature);
+  // timingSafeEqual throws on buffers of different lengths.
+  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
 }
 
 // EAS Build webhook endpoint
